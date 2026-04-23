@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Clínica Veterinaria — Buscar Mascotas</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+            min-height: 100vh;
+        }
+
+        /* ── Navbar ─────────────────────────── */
+        .navbar {
+            background: #1e293b;
+            border-bottom: 1px solid #334155;
+            padding: 14px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .navbar-brand { font-size: 16px; font-weight: 700; color: #f1f5f9; }
+        .navbar-brand span { font-size: 20px; margin-right: 8px; }
+
+        .navbar-rol {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 13px;
+            color: #94a3b8;
+        }
+
+        .tag {
+            display: inline-block;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 3px 10px;
+            border-radius: 4px;
+            letter-spacing: 0.05em;
+        }
+        .tag-vet   { background: #1d4ed8; color: #bfdbfe; }
+        .tag-recep { background: #065f46; color: #6ee7b7; }
+        .tag-admin { background: #7e22ce; color: #e9d5ff; }
+
+        .nav-links-bar { display: flex; gap: 4px; }
+        .nav-links-bar a {
+            padding: 7px 14px;
+            border-radius: 6px;
+            color: #94a3b8;
+            text-decoration: none;
+            font-size: 13px;
+            transition: all 0.15s;
+        }
+        .nav-links-bar a:hover  { background: #334155; color: #f1f5f9; }
+        .nav-links-bar a.active { background: #6366f1; color: white; }
+
+        /* ── Contenido principal ────────────── */
+        .container { max-width: 900px; margin: 0 auto; padding: 32px 24px; }
+
+        h2 { font-size: 24px; font-weight: 700; color: #f1f5f9; }
+        .page-desc { font-size: 14px; color: #64748b; margin-top: 4px; }
+
+        /* ── Barra de búsqueda ──────────────── */
+        .search-box {
+            margin-top: 24px;
+            display: flex;
+            gap: 12px;
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 12px 16px;
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            color: #f1f5f9;
+            font-size: 15px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .search-input:focus { border-color: #6366f1; }
+        .search-input::placeholder { color: #475569; }
+
+        .btn-buscar {
+            padding: 12px 24px;
+            background: #6366f1;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: background 0.2s;
+        }
+        .btn-buscar:hover { background: #4f46e5; }
+
+        .btn-limpiar {
+            padding: 12px 16px;
+            background: transparent;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            color: #94a3b8;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-limpiar:hover { border-color: #475569; color: #e2e8f0; }
+
+        /* ── Panel de ataques SQL ───────────── */
+        .ataque-panel {
+            margin-top: 16px;
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .ataque-header {
+            padding: 12px 16px;
+            background: #0f172a;
+            border-bottom: 1px solid #334155;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+        }
+
+        .ataque-header h3 {
+            font-size: 13px;
+            font-weight: 600;
+            color: #f87171;
+        }
+
+        .ataque-chips {
+            padding: 12px 16px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .chip {
+            padding: 6px 12px;
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 6px;
+            font-size: 12px;
+            font-family: 'Courier New', monospace;
+            color: #f87171;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .chip:hover { background: #1e293b; border-color: #f87171; }
+
+        /* ── Estado / estadísticas ──────────── */
+        .stats-bar {
+            margin-top: 20px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            font-size: 13px;
+            color: #64748b;
+        }
+
+        .badge {
+            padding: 4px 10px;
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 6px;
+            font-weight: 600;
+            color: #e2e8f0;
+        }
+
+        /* ── Tabla de resultados ────────────── */
+        .table-wrap {
+            margin-top: 16px;
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background: #0f172a;
+        }
+
+        th {
+            padding: 12px 16px;
+            text-align: left;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: #64748b;
+            border-bottom: 1px solid #334155;
+        }
+
+        td {
+            padding: 14px 16px;
+            font-size: 14px;
+            border-bottom: 1px solid #1e293b;
+            vertical-align: middle;
+        }
+
+        tr:last-child td { border-bottom: none; }
+
+        tr:hover td { background: rgba(99,102,241,0.06); }
+
+        .especie-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 12px;
+            padding: 3px 8px;
+            border-radius: 4px;
+            background: #0f172a;
+            border: 1px solid #334155;
+            color: #94a3b8;
+        }
+
+        /* ── Empty / error / loading ─────────── */
+        .state-box {
+            text-align: center;
+            padding: 48px 24px;
+            color: #475569;
+        }
+        .state-box .icon { font-size: 40px; margin-bottom: 12px; }
+        .state-box p { font-size: 15px; }
+        .state-box small { font-size: 12px; color: #334155; margin-top: 4px; display: block; }
+
+        .error-box {
+            margin-top: 16px;
+            padding: 14px 16px;
+            background: #1e293b;
+            border: 1px solid #dc2626;
+            border-radius: 8px;
+            color: #f87171;
+            font-size: 13px;
+            font-family: monospace;
+        }
+
+        /* ── Log de petición ────────────────── */
+        .log-box {
+            margin-top: 20px;
+            background: #020617;
+            border: 1px solid #1e293b;
+            border-radius: 8px;
+            padding: 14px 16px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            color: #4ade80;
+            max-height: 150px;
+            overflow-y: auto;
+        }
+        .log-box .log-line { margin-bottom: 4px; }
+        .log-box .log-warn { color: #fbbf24; }
+        .log-box .log-err  { color: #f87171; }
+
+        /* ── RLS info ───────────────────────── */
+        .rls-banner {
+            margin-top: 16px;
+            padding: 12px 16px;
+            background: rgba(99,102,241,0.1);
+            border: 1px solid rgba(99,102,241,0.3);
+            border-radius: 8px;
+            font-size: 13px;
+            color: #a5b4fc;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="navbar-brand"><span>🏥</span> Clínica Veterinaria</div>
+        <div class="navbar-rol">
+            <span id="navRolTag" class="tag tag-admin">ADMIN</span>
+            <span id="navNombre">Administrador</span>
+        </div>
+        <div class="nav-links-bar">
+            <a href="index.html">← Cambiar rol</a>
+            <a href="buscar.html" class="active">🔍 Buscar</a>
+            <a href="vacunas.html">💉 Vacunación</a>
+        </div>
+    </nav>
+
+    <!-- Contenido -->
+    <div class="container">
+        <h2>🔍 Buscar Mascotas</h2>
+        <p class="page-desc">
+            Búsqueda por nombre. El RLS de PostgreSQL filtra las filas según tu rol antes de devolverlas.<br>
+            Los inputs de ataque SQL a continuación demuestran que la parametrización los neutraliza.
+        </p>
+
+        <!-- Búsqueda -->
+        <div class="search-box">
+            <input
+                type="text"
+                id="inputNombre"
+                class="search-input"
+                placeholder="Escribe el nombre de la mascota..."
+                onkeydown="if(event.key==='Enter') buscar()"
+            />
+            <button class="btn-buscar" onclick="buscar()">🔍 Buscar</button>
+            <button class="btn-limpiar" onclick="limpiar()">✕</button>
+        </div>
+
+        <!-- Panel de ataques SQL -->
+        <div class="ataque-panel">
+            <div class="ataque-header" onclick="toggleAtaques()">
+                <h3>⚠ Pruebas de SQL Injection — estos ataques FALLAN</h3>
+                <span id="toggleIcon" style="color:#64748b;font-size:13px;">▼ mostrar</span>
+            </div>
+            <div id="ataquesContent" class="ataque-chips" style="display:none;">
+                <div class="chip" onclick="probarAtaque(this.textContent)" title="Ataque 1: OR siempre verdadero">
+                    ' OR '1'='1
+                </div>
+                <div class="chip" onclick="probarAtaque(this.textContent)" title="Ataque 2: Stacked query">
+                    '; DROP TABLE mascotas; --
+                </div>
+                <div class="chip" onclick="probarAtaque(this.textContent)" title="Ataque 3: UNION-based">
+                    ' UNION SELECT id,cedula,cedula,cedula,cedula,cedula FROM veterinarios --
+                </div>
+                <div class="chip" onclick="probarAtaque(this.textContent)" title="Ataque 4: Comentario de línea">
+                    Firulais'--
+                </div>
+                <div class="chip" onclick="probarAtaque(this.textContent)" title="Ataque 5: Siempre verdadero con #">
+                    ' OR 1=1 #
+                </div>
+            </div>
+        </div>
+
+        <!-- Banner RLS -->
+        <div class="rls-banner" id="rlsBanner" style="display:none;"></div>
+
+        <!-- Stats -->
+        <div class="stats-bar" id="statsBar" style="display:none;">
+            <span>Resultados:</span>
+            <span class="badge" id="totalResultados">0</span>
+            <span id="tiempoTexto"></span>
+        </div>
+
+        <!-- Error -->
+        <div class="error-box" id="errorBox" style="display:none;"></div>
+
+        <!-- Tabla -->
+        <div id="tablaWrap"></div>
+
+        <!-- Log de terminal -->
+        <div class="log-box" id="logBox">
+            <div class="log-line">Sistema listo. Ingresa un nombre para buscar mascotas.</div>
+        </div>
+    </div>
+
+    <script>
+        const API = '';  // mismo origen
+        let ataquesVisible = false;
+
+        // ── Inicializar sesión ────────────────────────────────
+        const rol    = sessionStorage.getItem('rol')    || 'admin';
+        const vetId  = sessionStorage.getItem('vetId')  || '0';
+        const nombre = sessionStorage.getItem('nombre') || 'Administrador';
+
+        // Configurar navbar
+        const tagEl = document.getElementById('navRolTag');
+        document.getElementById('navNombre').textContent = nombre;
+
+        if (rol === 'veterinario') {
+            tagEl.textContent = 'VETERINARIO';
+            tagEl.className = 'tag tag-vet';
+        } else if (rol === 'recepcion') {
+            tagEl.textContent = 'RECEPCIÓN';
+            tagEl.className = 'tag tag-recep';
+        } else {
+            tagEl.textContent = 'ADMIN';
+            tagEl.className = 'tag tag-admin';
+        }
+
+        // Banner RLS
+        if (rol === 'veterinario') {
+            const banner = document.getElementById('rlsBanner');
+            banner.style.display = 'block';
+            banner.innerHTML = `
+                🔒 <strong>RLS activo</strong> — Estás autenticado como vet_id=${vetId}.
+                PostgreSQL filtra cada fila antes de devolverla.
+                Solo verás las mascotas asignadas a tu vet_id en <code>vet_atiende_mascota</code>.
+            `;
+        }
+
+        // ── Funciones de UI ───────────────────────────────────
+        function toggleAtaques() {
+            ataquesVisible = !ataquesVisible;
+            document.getElementById('ataquesContent').style.display = ataquesVisible ? 'flex' : 'none';
+            document.getElementById('toggleIcon').textContent = ataquesVisible ? '▲ ocultar' : '▼ mostrar';
+        }
+
+        function probarAtaque(texto) {
+            document.getElementById('inputNombre').value = texto.trim();
+            log(`[ATAQUE] Probando: "${texto.trim()}"`, 'warn');
+            buscar();
+        }
+
+        function limpiar() {
+            document.getElementById('inputNombre').value = '';
+            document.getElementById('tablaWrap').innerHTML = '';
+            document.getElementById('statsBar').style.display = 'none';
+            document.getElementById('errorBox').style.display = 'none';
+        }
+
+        function log(msg, tipo = 'ok') {
+            const box  = document.getElementById('logBox');
+            const line = document.createElement('div');
+            line.className = 'log-line' + (tipo === 'warn' ? ' log-warn' : tipo === 'err' ? ' log-err' : '');
+            line.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
+            box.appendChild(line);
+            box.scrollTop = box.scrollHeight;
+        }
+
+        function espeieEmoji(especie) {
+            const map = { perro: '🐕', gato: '🐈', conejo: '🐇', ave: '🦜', hamster: '🐹' };
+            return map[especie?.toLowerCase()] || '🐾';
+        }
+
+        // ── Búsqueda principal ────────────────────────────────
+        async function buscar() {
+            const termino = document.getElementById('inputNombre').value;
+            const inicio  = Date.now();
+
+            document.getElementById('errorBox').style.display = 'none';
+            document.getElementById('tablaWrap').innerHTML = `
+                <div class="state-box"><div class="icon">⏳</div><p>Consultando...</p></div>`;
+
+            log(`[GET] /api/mascotas/buscar?nombre=${encodeURIComponent(termino)} | rol=${rol} | vet_id=${vetId}`);
+
+            try {
+                const headers = { 'x-rol': rol };
+                if (rol === 'veterinario' && vetId !== '0') headers['x-vet-id'] = vetId;
+
+                const resp = await fetch(`${API}/api/mascotas/buscar?nombre=${encodeURIComponent(termino)}`, {
+                    headers
+                });
+
+                const data = await resp.json();
+                const ms   = Date.now() - inicio;
+
+                if (!data.ok) throw new Error(data.error);
+
+                log(`[RESP] ${data.total} resultado(s) en ${ms}ms`);
+
+                // Stats
+                const statsBar = document.getElementById('statsBar');
+                statsBar.style.display = 'flex';
+                document.getElementById('totalResultados').textContent = data.total;
+                document.getElementById('tiempoTexto').textContent = `· ${ms}ms`;
+
+                // Tabla
+                if (data.total === 0) {
+                    document.getElementById('tablaWrap').innerHTML = `
+                        <div class="state-box">
+                            <div class="icon">🔍</div>
+                            <p>Sin resultados para <strong>"${termino}"</strong></p>
+                            <small>Si probaste un ataque SQL, así debe verse — 0 resultados, no un error.</small>
+                        </div>`;
+                    if (termino.includes("'") || termino.includes(';') || termino.toUpperCase().includes('SELECT')) {
+                        log(`[DEFENSA] Input tratado como string literal → ataque neutralizado ✓`, 'warn');
+                    }
+                    return;
+                }
+
+                let html = `
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Nombre</th>
+                                    <th>Especie</th>
+                                    <th>Fecha Nacimiento</th>
+                                    <th>Dueño</th>
+                                    <th>Teléfono</th>
+                                </tr>
+                            </thead>
+                            <tbody>`;
+
+                data.data.forEach(m => {
+                    html += `
+                        <tr>
+                            <td style="color:#475569;font-size:12px;">${m.id}</td>
+                            <td><strong>${m.nombre}</strong></td>
+                            <td>
+                                <span class="especie-badge">
+                                    ${espeieEmoji(m.especie)} ${m.especie}
+                                </span>
+                            </td>
+                            <td style="color:#94a3b8;font-size:13px;">${m.fecha_nacimiento ? m.fecha_nacimiento.slice(0,10) : '—'}</td>
+                            <td>${m.dueno}</td>
+                            <td style="color:#64748b;font-size:13px;">${m.telefono_dueno || '—'}</td>
+                        </tr>`;
+                });
+
+                html += `</tbody></table></div>`;
+                document.getElementById('tablaWrap').innerHTML = html;
+
+            } catch (err) {
+                const ms = Date.now() - inicio;
+                log(`[ERROR] ${err.message} (${ms}ms)`, 'err');
+                document.getElementById('tablaWrap').innerHTML = '';
+                const eb = document.getElementById('errorBox');
+                eb.style.display = 'block';
+                eb.textContent = `Error: ${err.message}`;
+            }
+        }
+
+        // Buscar todas al cargar
+        buscar();
+    </script>
+</body>
+</html>

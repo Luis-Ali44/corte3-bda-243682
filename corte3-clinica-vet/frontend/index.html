@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Clínica Veterinaria — Login</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: #0f172a;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .card {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 16px;
+            padding: 48px 40px;
+            width: 420px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+        }
+
+        .logo {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .logo-icon {
+            font-size: 56px;
+            display: block;
+            margin-bottom: 12px;
+        }
+
+        h1 {
+            font-size: 22px;
+            font-weight: 700;
+            color: #f1f5f9;
+            text-align: center;
+        }
+
+        .subtitle {
+            font-size: 13px;
+            color: #64748b;
+            text-align: center;
+            margin-top: 4px;
+        }
+
+        .divider {
+            border: none;
+            border-top: 1px solid #334155;
+            margin: 28px 0;
+        }
+
+        label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 8px;
+        }
+
+        select {
+            width: 100%;
+            padding: 12px 16px;
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            color: #f1f5f9;
+            font-size: 15px;
+            cursor: pointer;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        select:focus {
+            border-color: #6366f1;
+        }
+
+        .rol-info {
+            margin-top: 12px;
+            padding: 12px 16px;
+            background: #0f172a;
+            border-radius: 8px;
+            border-left: 3px solid #6366f1;
+        }
+
+        .rol-info p {
+            font-size: 13px;
+            color: #94a3b8;
+            line-height: 1.5;
+        }
+
+        .rol-info strong {
+            color: #e2e8f0;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 14px;
+            background: #6366f1;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 28px;
+            transition: background 0.2s, transform 0.1s;
+        }
+
+        .btn:hover  { background: #4f46e5; }
+        .btn:active { transform: scale(0.98); }
+
+        .nav-links {
+            display: flex;
+            gap: 8px;
+            margin-top: 16px;
+        }
+
+        .nav-links a {
+            flex: 1;
+            padding: 10px;
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            color: #94a3b8;
+            text-decoration: none;
+            font-size: 13px;
+            text-align: center;
+            transition: all 0.2s;
+        }
+
+        .nav-links a:hover {
+            border-color: #6366f1;
+            color: #c7d2fe;
+        }
+
+        .tag {
+            display: inline-block;
+            font-size: 11px;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-weight: 600;
+            margin-left: 6px;
+            vertical-align: middle;
+        }
+        .tag-vet   { background: #1d4ed8; color: #bfdbfe; }
+        .tag-recep { background: #065f46; color: #6ee7b7; }
+        .tag-admin { background: #7e22ce; color: #e9d5ff; }
+
+        .footer {
+            margin-top: 24px;
+            text-align: center;
+            font-size: 12px;
+            color: #475569;
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div class="logo">
+            <span class="logo-icon">🏥</span>
+            <h1>Clínica Veterinaria</h1>
+            <p class="subtitle">Sistema de Gestión · Corte 3 · BDA UP Chiapas</p>
+        </div>
+
+        <hr class="divider" />
+
+        <div>
+            <label for="rolSelect">Selecciona tu rol</label>
+            <select id="rolSelect" onchange="actualizarInfo()">
+                <optgroup label="Veterinarios">
+                    <option value="veterinario:1">Dr. Fernando López Castro</option>
+                    <option value="veterinario:2">Dra. Sofía García Velasco</option>
+                    <option value="veterinario:3">Dr. Andrés Méndez Bravo</option>
+                </optgroup>
+                <optgroup label="Personal Administrativo">
+                    <option value="recepcion:0">Recepcionista</option>
+                    <option value="admin:0">Administrador</option>
+                </optgroup>
+            </select>
+
+            <div class="rol-info" id="rolInfo">
+                <p id="rolDescripcion"></p>
+            </div>
+        </div>
+
+        <button class="btn" onclick="entrar()">▶ Entrar al Sistema</button>
+
+        <div class="nav-links">
+            <a href="buscar.html">🔍 Buscar Mascotas</a>
+            <a href="vacunas.html">💉 Panel Vacunación</a>
+        </div>
+
+        <div class="footer">
+            Mtro. Ramsés Alejandro Camas Nájera · Abril 2026
+        </div>
+    </div>
+
+    <script>
+        const INFO_ROLES = {
+            'veterinario:1': {
+                tag: 'VETERINARIO',
+                css: 'tag-vet',
+                texto: '<strong>Dr. Fernando López Castro</strong> · Descansa lunes y jueves.<br>Ve solo sus mascotas: <em>Firulais, Toby, Max</em> (RLS activo).'
+            },
+            'veterinario:2': {
+                tag: 'VETERINARIO',
+                css: 'tag-vet',
+                texto: '<strong>Dra. Sofía García Velasco</strong> · Descansa domingo.<br>Ve solo sus mascotas: <em>Misifú, Luna, Dante</em> (RLS activo).'
+            },
+            'veterinario:3': {
+                tag: 'VETERINARIO',
+                css: 'tag-vet',
+                texto: '<strong>Dr. Andrés Méndez Bravo</strong> · Trabaja todos los días.<br>Ve solo sus mascotas: <em>Rocky, Pelusa, Coco, Mango</em> (RLS activo).'
+            },
+            'recepcion:0': {
+                tag: 'RECEPCIÓN',
+                css: 'tag-recep',
+                texto: '<strong>Recepcionista</strong> · Acceso a mascotas, dueños y citas.<br>No ve vacunas ni datos médicos.'
+            },
+            'admin:0': {
+                tag: 'ADMIN',
+                css: 'tag-admin',
+                texto: '<strong>Administrador</strong> · Acceso total · Sin restricciones RLS.<br>Ve las <em>10 mascotas</em> y todos los registros.'
+            }
+        };
+
+        function actualizarInfo() {
+            const val  = document.getElementById('rolSelect').value;
+            const info = INFO_ROLES[val];
+            document.getElementById('rolDescripcion').innerHTML = info
+                ? `<span class="tag ${info.css}">${info.tag}</span> ${info.texto}`
+                : '';
+        }
+
+        function entrar() {
+            const val  = document.getElementById('rolSelect').value;
+            const [rol, vetId] = val.split(':');
+            sessionStorage.setItem('rol',   rol);
+            sessionStorage.setItem('vetId', vetId);
+            sessionStorage.setItem('nombre', document.getElementById('rolSelect').selectedOptions[0].text);
+            window.location.href = 'buscar.html';
+        }
+
+        // Inicializar descripción al cargar
+        actualizarInfo();
+
+        // Restaurar sesión previa si existe
+        const rolGuardado = sessionStorage.getItem('rol');
+        if (rolGuardado) {
+            const vetId = sessionStorage.getItem('vetId') || '0';
+            const key   = `${rolGuardado}:${vetId}`;
+            const sel   = document.getElementById('rolSelect');
+            [...sel.options].forEach(opt => { if (opt.value === key) opt.selected = true; });
+            actualizarInfo();
+        }
+    </script>
+</body>
+</html>

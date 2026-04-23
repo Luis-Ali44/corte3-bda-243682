@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Clínica Veterinaria — Panel Vacunación</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+            min-height: 100vh;
+        }
+
+        /* ── Navbar ─────────────────────── */
+        .navbar {
+            background: #1e293b;
+            border-bottom: 1px solid #334155;
+            padding: 14px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .navbar-brand { font-size: 16px; font-weight: 700; color: #f1f5f9; }
+        .navbar-brand span { font-size: 20px; margin-right: 8px; }
+
+        .navbar-rol { display: flex; align-items: center; gap: 10px; font-size: 13px; color: #94a3b8; }
+        .tag {
+            display: inline-block; font-size: 11px; font-weight: 700;
+            padding: 3px 10px; border-radius: 4px; letter-spacing: 0.05em;
+        }
+        .tag-vet   { background: #1d4ed8; color: #bfdbfe; }
+        .tag-recep { background: #065f46; color: #6ee7b7; }
+        .tag-admin { background: #7e22ce; color: #e9d5ff; }
+
+        .nav-links-bar { display: flex; gap: 4px; }
+        .nav-links-bar a {
+            padding: 7px 14px; border-radius: 6px; color: #94a3b8;
+            text-decoration: none; font-size: 13px; transition: all 0.15s;
+        }
+        .nav-links-bar a:hover  { background: #334155; color: #f1f5f9; }
+        .nav-links-bar a.active { background: #6366f1; color: white; }
+
+        /* ── Layout ─────────────────────── */
+        .container { max-width: 1100px; margin: 0 auto; padding: 32px 24px; }
+        h2 { font-size: 24px; font-weight: 700; color: #f1f5f9; }
+        .page-desc { font-size: 14px; color: #64748b; margin-top: 4px; }
+
+        /* ── Grid superior ────────────── */
+        .top-grid {
+            margin-top: 24px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        /* ── Tarjeta de caché ────────── */
+        .cache-card {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 10px;
+            padding: 20px;
+        }
+
+        .cache-card h3 {
+            font-size: 14px;
+            font-weight: 700;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 16px;
+        }
+
+        .cache-status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .dot {
+            width: 10px; height: 10px;
+            border-radius: 50%;
+            background: #475569;
+            flex-shrink: 0;
+        }
+        .dot-hit  { background: #4ade80; box-shadow: 0 0 8px #4ade8066; }
+        .dot-miss { background: #f97316; box-shadow: 0 0 8px #f9731666; }
+
+        .cache-status-text {
+            font-size: 14px;
+            font-weight: 600;
+            color: #f1f5f9;
+        }
+
+        .latencia-num {
+            font-size: 36px;
+            font-weight: 800;
+            color: #4ade80;
+            font-variant-numeric: tabular-nums;
+            margin: 8px 0 4px;
+        }
+
+        .latencia-label {
+            font-size: 12px;
+            color: #64748b;
+        }
+
+        .ttl-bar-wrap {
+            margin-top: 12px;
+        }
+
+        .ttl-bar-bg {
+            background: #0f172a;
+            border-radius: 4px;
+            height: 6px;
+            overflow: hidden;
+        }
+
+        .ttl-bar-fill {
+            height: 100%;
+            background: #6366f1;
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+
+        .ttl-text {
+            font-size: 11px;
+            color: #475569;
+            margin-top: 5px;
+        }
+
+        .btn-row {
+            display: flex;
+            gap: 8px;
+            margin-top: 16px;
+        }
+
+        .btn-primary {
+            flex: 1;
+            padding: 10px;
+            background: #6366f1;
+            color: white;
+            border: none;
+            border-radius: 7px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .btn-primary:hover { background: #4f46e5; }
+
+        .btn-danger {
+            padding: 10px 14px;
+            background: transparent;
+            color: #f87171;
+            border: 1px solid #7f1d1d;
+            border-radius: 7px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-danger:hover { background: #7f1d1d33; }
+
+        /* ── Card de inventario ────── */
+        .inv-card {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 10px;
+            padding: 20px;
+        }
+        .inv-card h3 {
+            font-size: 14px;
+            font-weight: 700;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 14px;
+        }
+        .inv-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #1e293b;
+            font-size: 13px;
+        }
+        .inv-item:last-child { border-bottom: none; }
+        .inv-nombre { color: #e2e8f0; }
+        .inv-stock { font-weight: 700; }
+        .stock-ok   { color: #4ade80; }
+        .stock-bajo { color: #fbbf24; }
+        .stock-cero { color: #f87171; }
+
+        /* ── Tabla principal ──────── */
+        .section-header {
+            margin-top: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .section-header h3 { font-size: 17px; font-weight: 700; color: #f1f5f9; }
+
+        .fuente-badge {
+            font-size: 12px;
+            padding: 4px 12px;
+            border-radius: 6px;
+            font-weight: 600;
+        }
+        .fuente-redis { background: #1d4ed8; color: #bfdbfe; }
+        .fuente-pg    { background: #065f46; color: #6ee7b7; }
+
+        .table-wrap {
+            margin-top: 12px;
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        table { width: 100%; border-collapse: collapse; }
+        thead { background: #0f172a; }
+        th {
+            padding: 11px 16px;
+            text-align: left;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: #64748b;
+            border-bottom: 1px solid #334155;
+        }
+        td {
+            padding: 13px 16px;
+            font-size: 13px;
+            border-bottom: 1px solid #1e293b;
+            vertical-align: middle;
+        }
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background: rgba(99,102,241,0.05); }
+
+        .estado-badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 700;
+        }
+        .estado-vencida { background: #7f1d1d; color: #fca5a5; }
+        .estado-nunca   { background: #78350f; color: #fde68a; }
+        .estado-ok      { background: #14532d; color: #86efac; }
+
+        .btn-aplicar {
+            padding: 6px 12px;
+            background: transparent;
+            border: 1px solid #4ade80;
+            border-radius: 5px;
+            color: #4ade80;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .btn-aplicar:hover { background: #14532d; }
+
+        /* ── Modal aplicar vacuna ─── */
+        .overlay {
+            display: none;
+            position: fixed; inset: 0;
+            background: rgba(0,0,0,0.7);
+            z-index: 100;
+            align-items: center;
+            justify-content: center;
+        }
+        .overlay.open { display: flex; }
+
+        .modal {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 12px;
+            padding: 28px;
+            width: 400px;
+        }
+        .modal h4 { font-size: 16px; font-weight: 700; color: #f1f5f9; margin-bottom: 20px; }
+
+        .form-group { margin-bottom: 14px; }
+        .form-group label { display: block; font-size: 12px; color: #94a3b8; margin-bottom: 6px; font-weight: 600; }
+        .form-group select, .form-group input {
+            width: 100%;
+            padding: 10px 14px;
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 7px;
+            color: #f1f5f9;
+            font-size: 13px;
+            outline: none;
+        }
+        .modal-btns { display: flex; gap: 10px; margin-top: 20px; }
+        .modal-btns .btn-primary { padding: 11px; }
+        .modal-cancel {
+            padding: 11px 18px;
+            background: transparent;
+            border: 1px solid #334155;
+            border-radius: 7px;
+            color: #94a3b8;
+            cursor: pointer;
+        }
+
+        /* ── Log terminal ─────────── */
+        .log-box {
+            margin-top: 24px;
+            background: #020617;
+            border: 1px solid #1e293b;
+            border-radius: 8px;
+            padding: 14px 16px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            color: #4ade80;
+            max-height: 180px;
+            overflow-y: auto;
+        }
+        .log-box .ll    { margin-bottom: 3px; }
+        .log-box .lwarn { color: #fbbf24; }
+        .log-box .lerr  { color: #f87171; }
+        .log-box .linfo { color: #38bdf8; }
+
+        /* ── Misc ─────────────────── */
+        .state-box { text-align: center; padding: 40px; color: #475569; }
+        .state-box .icon { font-size: 36px; margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="navbar-brand"><span>🏥</span> Clínica Veterinaria</div>
+        <div class="navbar-rol">
+            <span id="navRolTag" class="tag tag-admin">ADMIN</span>
+            <span id="navNombre">Administrador</span>
+        </div>
+        <div class="nav-links-bar">
+            <a href="index.html">← Cambiar rol</a>
+            <a href="buscar.html">🔍 Buscar</a>
+            <a href="vacunas.html" class="active">💉 Vacunación</a>
+        </div>
+    </nav>
+
+    <!-- Contenido -->
+    <div class="container">
+        <h2>💉 Panel de Vacunación</h2>
+        <p class="page-desc">
+            Vista <code>v_mascotas_vacunacion_pendiente</code> cacheada en Redis (TTL=300s).
+            El contador de latencia demuestra HIT vs MISS. Aplica una vacuna para invalidar el caché.
+        </p>
+
+        <div class="top-grid">
+            <!-- Card caché -->
+            <div class="cache-card">
+                <h3>🟢 Estado del Caché Redis</h3>
+                <div class="cache-status">
+                    <div class="dot" id="cacheDot"></div>
+                    <span class="cache-status-text" id="cacheStatusText">—</span>
+                </div>
+                <div class="latencia-num" id="latenciaNum">—</div>
+                <div class="latencia-label">milisegundos de respuesta</div>
+
+                <div class="ttl-bar-wrap" id="ttlWrap" style="display:none;">
+                    <div class="ttl-bar-bg">
+                        <div class="ttl-bar-fill" id="ttlFill" style="width:100%;"></div>
+                    </div>
+                    <div class="ttl-text" id="ttlText"></div>
+                </div>
+
+                <div class="btn-row" style="margin-top:20px;">
+                    <button class="btn-primary" onclick="cargarVacunacion()">↻ Recargar</button>
+                    <button class="btn-danger" onclick="limpiarCache()">🗑 Limpiar Caché</button>
+                </div>
+            </div>
+
+            <!-- Card inventario -->
+            <div class="inv-card">
+                <h3>📦 Inventario de Vacunas</h3>
+                <div id="inventarioList">
+                    <div class="state-box"><div class="icon">⏳</div></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sección principal -->
+        <div class="section-header">
+            <h3>Mascotas y Estado de Vacunación</h3>
+            <span class="fuente-badge" id="fuenteBadge" style="display:none;"></span>
+        </div>
+
+        <div id="tablaWrap">
+            <div class="state-box"><div class="icon">⏳</div><p>Cargando...</p></div>
+        </div>
+
+        <!-- Log terminal -->
+        <div class="log-box" id="logBox">
+            <div class="ll">Sistema iniciado. Cargando datos...</div>
+        </div>
+    </div>
+
+    <!-- Modal: Aplicar Vacuna -->
+    <div class="overlay" id="overlay">
+        <div class="modal">
+            <h4>💉 Aplicar Vacuna</h4>
+            <div class="form-group">
+                <label>Mascota</label>
+                <input type="text" id="modalMascota" readonly style="color:#94a3b8;" />
+                <input type="hidden" id="modalMascotaId" />
+            </div>
+            <div class="form-group">
+                <label>Vacuna a aplicar</label>
+                <select id="modalVacuna">
+                    <option value="">Cargando inventario...</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Costo cobrado (opcional)</label>
+                <input type="number" id="modalCosto" placeholder="0.00" step="0.01" min="0" />
+            </div>
+            <div class="modal-btns">
+                <button class="btn-primary" onclick="confirmarVacuna()">✓ Aplicar</button>
+                <button class="modal-cancel" onclick="cerrarModal()">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API = '';
+        let inventarioCache = [];
+
+        // ── Sesión ────────────────────────────────────────────
+        const rol    = sessionStorage.getItem('rol')    || 'admin';
+        const vetId  = sessionStorage.getItem('vetId')  || '0';
+        const nombre = sessionStorage.getItem('nombre') || 'Administrador';
+
+        // Navbar
+        const tagEl = document.getElementById('navRolTag');
+        document.getElementById('navNombre').textContent = nombre;
+        if (rol === 'veterinario') { tagEl.textContent = 'VETERINARIO'; tagEl.className = 'tag tag-vet'; }
+        else if (rol === 'recepcion') { tagEl.textContent = 'RECEPCIÓN'; tagEl.className = 'tag tag-recep'; }
+
+        // ── Helpers ───────────────────────────────────────────
+        function hdrs() {
+            const h = { 'Content-Type': 'application/json', 'x-rol': rol };
+            if (rol === 'veterinario' && vetId !== '0') h['x-vet-id'] = vetId;
+            return h;
+        }
+
+        function log(msg, tipo = '') {
+            const box  = document.getElementById('logBox');
+            const line = document.createElement('div');
+            line.className = 'll' + (tipo ? ' l' + tipo : '');
+            line.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
+            box.appendChild(line);
+            box.scrollTop = box.scrollHeight;
+        }
+
+        function estadoBadge(estado) {
+            if (estado === 'NUNCA VACUNADA') return `<span class="estado-badge estado-nunca">NUNCA VACUNADA</span>`;
+            if (estado === 'VACUNA VENCIDA') return `<span class="estado-badge estado-vencida">VENCIDA</span>`;
+            return `<span class="estado-badge estado-ok">AL DÍA</span>`;
+        }
+
+        // ── Cargar vacunación pendiente ───────────────────────
+        async function cargarVacunacion() {
+            const inicio = Date.now();
+            log(`[GET] /api/vacunacion-pendiente | rol=${rol} | vet_id=${vetId}`);
+
+            try {
+                const resp = await fetch(`${API}/api/vacunacion-pendiente`, { headers: hdrs() });
+                const data = await resp.json();
+                const ms   = Date.now() - inicio;
+
+                if (!data.ok) throw new Error(data.error);
+
+                // Actualizar card de caché
+                const esHit = data.fuente === 'redis_cache';
+                document.getElementById('latenciaNum').textContent = `${ms}ms`;
+                document.getElementById('latenciaNum').style.color = esHit ? '#4ade80' : '#f97316';
+
+                const dot  = document.getElementById('cacheDot');
+                const text = document.getElementById('cacheStatusText');
+                if (esHit) {
+                    dot.className  = 'dot dot-hit';
+                    text.textContent = `CACHE HIT — ${ms}ms`;
+                    text.style.color = '#4ade80';
+                    log(`[CACHE HIT]  Latencia: ${ms}ms | TTL restante: ${data.ttl_restante_s}s`, 'info');
+                } else {
+                    dot.className  = 'dot dot-miss';
+                    text.textContent = `CACHE MISS — ${ms}ms → consultó PostgreSQL`;
+                    text.style.color = '#f97316';
+                    log(`[CACHE MISS] Latencia: ${ms}ms → resultado guardado en Redis (TTL=${data.ttl_restante_s}s)`, 'warn');
+                }
+
+                // TTL bar
+                const ttlWrap = document.getElementById('ttlWrap');
+                ttlWrap.style.display = 'block';
+                const pct = Math.round((data.ttl_restante_s / 300) * 100);
+                document.getElementById('ttlFill').style.width = `${pct}%`;
+                document.getElementById('ttlText').textContent = `TTL restante: ${data.ttl_restante_s}s de 300s (${pct}%)`;
+
+                // Badge fuente
+                const badge = document.getElementById('fuenteBadge');
+                badge.style.display = 'inline-block';
+                badge.textContent = esHit ? '⚡ Desde Redis' : '🗄 Desde PostgreSQL';
+                badge.className = `fuente-badge ${esHit ? 'fuente-redis' : 'fuente-pg'}`;
+
+                // Tabla
+                renderTabla(data.data);
+
+            } catch (err) {
+                log(`[ERROR] ${err.message}`, 'err');
+                document.getElementById('tablaWrap').innerHTML = `
+                    <div class="state-box"><div class="icon">⚠</div><p style="color:#f87171;">${err.message}</p></div>`;
+            }
+        }
+
+        function renderTabla(rows) {
+            if (!rows || rows.length === 0) {
+                document.getElementById('tablaWrap').innerHTML = `
+                    <div class="state-box"><div class="icon">✅</div><p>Todas las mascotas están al día.</p></div>`;
+                return;
+            }
+
+            let html = `
+                <div class="table-wrap"><table>
+                    <thead><tr>
+                        <th>Mascota</th><th>Especie</th><th>Veterinario</th>
+                        <th>Dueño</th><th>Última vacuna</th><th>Total</th>
+                        <th>Estado</th><th>Acción</th>
+                    </tr></thead><tbody>`;
+
+            rows.forEach(r => {
+                html += `
+                    <tr>
+                        <td><strong>${r.mascota}</strong></td>
+                        <td style="color:#94a3b8;">${r.especie}</td>
+                        <td style="font-size:12px;color:#94a3b8;">${r.veterinario_asignado}</td>
+                        <td style="font-size:12px;">${r.dueno}</td>
+                        <td style="font-size:12px;color:#64748b;">${r.ultima_vacuna ? r.ultima_vacuna.slice(0,10) : '—'}</td>
+                        <td style="text-align:center;color:#64748b;">${r.total_vacunas_aplicadas}</td>
+                        <td>${estadoBadge(r.estado_vacunacion)}</td>
+                        <td>
+                            <button class="btn-aplicar"
+                                onclick="abrirModal(${r.mascota_id}, '${r.mascota}')">
+                                + Aplicar
+                            </button>
+                        </td>
+                    </tr>`;
+            });
+
+            html += `</tbody></table></div>`;
+            document.getElementById('tablaWrap').innerHTML = html;
+        }
+
+        // ── Cargar inventario ─────────────────────────────────
+        async function cargarInventario() {
+            try {
+                const resp = await fetch(`${API}/api/vacunas/inventario`, { headers: hdrs() });
+                const data = await resp.json();
+                if (!data.ok) throw new Error(data.error);
+
+                inventarioCache = data.data;
+
+                let html = '';
+                data.data.forEach(v => {
+                    const cls = v.stock_actual === 0 ? 'stock-cero'
+                              : v.estado_stock === 'STOCK BAJO' ? 'stock-bajo'
+                              : 'stock-ok';
+                    html += `
+                        <div class="inv-item">
+                            <span class="inv-nombre">${v.nombre}</span>
+                            <span class="inv-stock ${cls}">${v.stock_actual} u.</span>
+                        </div>`;
+                });
+
+                document.getElementById('inventarioList').innerHTML = html || '<p style="color:#475569;font-size:13px;">Sin datos</p>';
+
+            } catch (err) {
+                log(`[ERROR inventario] ${err.message}`, 'err');
+            }
+        }
+
+        // ── Modal aplicar vacuna ──────────────────────────────
+        function abrirModal(mascotaId, mascotaNombre) {
+            document.getElementById('modalMascota').value   = mascotaNombre;
+            document.getElementById('modalMascotaId').value = mascotaId;
+            document.getElementById('modalCosto').value     = '';
+
+            // Poblar select de vacunas
+            const sel = document.getElementById('modalVacuna');
+            sel.innerHTML = inventarioCache
+                .filter(v => v.stock_actual > 0)
+                .map(v => `<option value="${v.id}">${v.nombre} ($${v.costo_unitario}) — Stock: ${v.stock_actual}</option>`)
+                .join('') || '<option value="">Sin stock disponible</option>';
+
+            document.getElementById('overlay').classList.add('open');
+        }
+
+        function cerrarModal() {
+            document.getElementById('overlay').classList.remove('open');
+        }
+
+        async function confirmarVacuna() {
+            const mascotaId    = parseInt(document.getElementById('modalMascotaId').value);
+            const vacunaId     = parseInt(document.getElementById('modalVacuna').value);
+            const costo        = parseFloat(document.getElementById('modalCosto').value) || null;
+            const veterinarioId = parseInt(vetId) || 1;
+
+            if (!vacunaId) return alert('Selecciona una vacuna.');
+
+            try {
+                log(`[POST] /api/vacunas/aplicar | mascota_id=${mascotaId} | vacuna_id=${vacunaId}`);
+
+                const resp = await fetch(`${API}/api/vacunas/aplicar`, {
+                    method: 'POST',
+                    headers: hdrs(),
+                    body: JSON.stringify({ mascota_id: mascotaId, vacuna_id: vacunaId, veterinario_id: veterinarioId, costo_cobrado: costo })
+                });
+
+                const data = await resp.json();
+                if (!data.ok) throw new Error(data.error);
+
+                log(`[OK] Vacuna aplicada → id=${data.vacuna_aplicada_id} | fecha=${data.fecha_aplicacion}`);
+                log(`[CACHE INVALIDATED] Cache eliminado → próxima consulta hará MISS`, 'warn');
+
+                cerrarModal();
+                await cargarInventario();
+                await cargarVacunacion();
+
+            } catch (err) {
+                log(`[ERROR] ${err.message}`, 'err');
+                alert(`Error: ${err.message}`);
+            }
+        }
+
+        // ── Limpiar caché manualmente ─────────────────────────
+        async function limpiarCache() {
+            try {
+                const resp = await fetch(`${API}/api/cache`, { method: 'DELETE', headers: hdrs() });
+                const data = await resp.json();
+                log(`[CACHE CLEARED] ${data.mensaje}`, 'warn');
+                document.getElementById('cacheDot').className = 'dot';
+                document.getElementById('cacheStatusText').textContent = 'Caché limpiado manualmente';
+                document.getElementById('ttlWrap').style.display = 'none';
+            } catch (err) {
+                log(`[ERROR] ${err.message}`, 'err');
+            }
+        }
+
+        // ── Inicializar ───────────────────────────────────────
+        (async () => {
+            await cargarInventario();
+            await cargarVacunacion();
+        })();
+    </script>
+</body>
+</html>

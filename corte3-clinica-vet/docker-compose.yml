@@ -1,0 +1,108 @@
+version: '3.9'
+
+# =============================================================
+# Clínica Veterinaria — Corte 3
+# Base de Datos Avanzadas · UP Chiapas · Abril 2026
+#
+# Servicios:
+#   postgres  → PostgreSQL 16 con schema + SQL del backend
+#   redis     → Redis 7 para caché de vacunacion_pendiente
+#   api       → Node.js + Express (API + frontend estático)
+#
+# Uso:
+#   docker compose up -d          → levantar todo
+#   docker compose logs -f api    → ver logs del backend
+#   docker compose down -v        → bajar y limpiar volúmenes
+# =============================================================
+
+services:
+
+  # ──────────────────────────────────────────────────────────
+  # PostgreSQL
+  # Los archivos SQL se cargan en orden alfabético desde
+  # /docker-entrypoint-initdb.d/ al crear el contenedor.
+  # ──────────────────────────────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    container_name: clinica_vet_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB:       clinica_vet
+      POSTGRES_USER:     postgres
+      POSTGRES_PASSWORD: postgres123
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      # 00_ primero → schema con tablas y datos
+      - ./schema_corte3.sql:/docker-entrypoint-initdb.d/00_schema.sql:ro
+      # 01..05 → backend en orden
+      - ./backend/01_procedures.sql:/docker-entrypoint-initdb.d/01_procedures.sql:ro
+      - ./backend/02_triggers.sql:/docker-entrypoint-initdb.d/02_triggers.sql:ro
+      - ./backend/03_views.sql:/docker-entrypoint-initdb.d/03_views.sql:ro
+      - ./backend/04_roles_y_permisos.sql:/docker-entrypoint-initdb.d/04_roles_y_permisos.sql:ro
+      - ./backend/05_rls.sql:/docker-entrypoint-initdb.d/05_rls.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d clinica_vet"]
+      interval: 5s
+      timeout: 5s
+      retries: 15
+      start_period: 10s
+
+  # ──────────────────────────────────────────────────────────
+  # Redis
+  # Caché para v_mascotas_vacunacion_pendiente (TTL = 300s)
+  # ──────────────────────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    container_name: clinica_vet_redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # ──────────────────────────────────────────────────────────
+  # API Node.js
+  # Espera a que postgres y redis estén saludables antes de
+  # iniciar (depends_on con condition: service_healthy).
+  # ──────────────────────────────────────────────────────────
+  api:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    container_name: clinica_vet_api
+    restart: unless-stopped
+    environment:
+      # PostgreSQL — usuarios por rol
+      DB_HOST:           postgres
+      DB_PORT:           5432
+      DB_NAME:           clinica_vet
+      VET_DB_USER:       vet_user
+      VET_DB_PASSWORD:   vet_pass_2024
+      RECEP_DB_USER:     recep_user
+      RECEP_DB_PASSWORD: recep_pass_2024
+      ADMIN_DB_USER:     admin_user
+      ADMIN_DB_PASSWORD: admin_pass_2024
+      # Redis
+      REDIS_HOST:        redis
+      REDIS_PORT:        6379
+      # Servidor
+      PORT:              3000
+    ports:
+      - "3000:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      # Frontend estático servido desde /app/public
+      - ./frontend:/app/public:ro
+
+volumes:
+  postgres_data:
+    name: clinica_vet_pgdata
